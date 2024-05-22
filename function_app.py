@@ -3,9 +3,9 @@ import logging
 
 import re
 
-app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
-@app.route(route="email_validation")
+@app.route(route="email_validation", methods=["POST"])
 def email_validation(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
