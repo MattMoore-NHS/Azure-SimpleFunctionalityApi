@@ -9,8 +9,6 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 def email_validation(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
-    headers = {"Content-Type":"application/json"}
-
     try:
         req_body = req.get_json()
     except ValueError:
@@ -22,7 +20,6 @@ def email_validation(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             "bad request",
             status_code=400,
-            headers=headers
         )
 
     valid = validate_email_syntax(email)
@@ -30,7 +27,6 @@ def email_validation(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(
             f"{valid}",
             status_code=200,
-            headers=headers
         )
 
 
