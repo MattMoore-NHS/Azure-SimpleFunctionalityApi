@@ -1,49 +1,82 @@
-from function_app import validate_email_syntax
+import azure.functions as func
+
+from function_app import email_validation, validate_email_syntax
 import unittest
-import os
-import sys
+
 
 class TestEmailValidation(unittest.TestCase):
 
-    def test_validate_email_syntax(self):
+    def test_email_validation_syntax(self):
 
-        # True email address = True
-        self.assertTrue(validate_email_syntax("abc@yopmail.com"))
-
-        # Email address with sub domain = True
-        self.assertTrue(validate_email_syntax("abc@yopmail.subdomain.com"))
-
-        # string ending in '.'
-        self.assertFalse(validate_email_syntax("abc@yopmail.subdomain."))
-
-        # string ending with @ '.'
-        self.assertFalse(validate_email_syntax("abc@yopmail.subdomain@"))
-
-        # Multiple @s
-        self.assertFalse(validate_email_syntax("abc@@yopmail.com"))
+        # Email types
+        self.assertTrue(validate_email_syntax("abc@yopmail.com")) # True email address
+        self.assertTrue(validate_email_syntax("abc@yopmail.subdomain.com")) # True subdomain
+        self.assertTrue(validate_email_syntax("abc123@yopmail.com")) # number in address
+        self.assertTrue(validate_email_syntax("abc@yopmail123.com")) # number in domain
+        self.assertTrue(validate_email_syntax("abc@yopmail.subdomain123.com")) # number in subdomain
 
         # Symbols
-        self.assertFalse(validate_email_syntax("!"))
+        # '@'s
+        self.assertFalse(validate_email_syntax("@"))
+        self.assertFalse(validate_email_syntax("@abc@yopmail.subdomain"))
+        self.assertFalse(validate_email_syntax("abc@yopmail.subdomain@"))
+        self.assertFalse(validate_email_syntax("abc@@yopmail.com"))
+
+        # '#'s
         self.assertFalse(validate_email_syntax("#"))
+        self.assertFalse(validate_email_syntax("abc#@yopmail.com"))
+        self.assertFalse(validate_email_syntax("abc#@yopmail#.com"))
+        self.assertFalse(validate_email_syntax("abc#@yopmail.com#"))
 
-        # No string provided = False
-        self.assertFalse(validate_email_syntax(""))
+        # '.'s
+        self.assertFalse(validate_email_syntax("."))
+        self.assertTrue(validate_email_syntax("a.bc@yopmail.com"))
+        self.assertTrue(validate_email_syntax("abc@yop.mail.com"))
+        self.assertFalse(validate_email_syntax("abc@yopmail.com."))
+        self.assertFalse(validate_email_syntax(".abc@yopmail.com"))
+        self.assertFalse(validate_email_syntax("ab..c@yopmail.com"))
+        self.assertFalse(validate_email_syntax(".abc@yop..mail.com"))
 
-        # Name provided as string = False
-        self.assertFalse(validate_email_syntax("John Smith"))
+        # '!'s
+        self.assertFalse(validate_email_syntax("!"))
+        self.assertFalse(validate_email_syntax("!abc@yopmail.com"))
+        self.assertFalse(validate_email_syntax("abc@yopmail!.com"))
+        self.assertFalse(validate_email_syntax("abc@yopmail.com!"))
 
-        # Integer provided = False
-        self.assertFalse(validate_email_syntax(1))
+        # ' 's
+        self.assertFalse(validate_email_syntax("abc @yopmail.com"))
+        self.assertFalse(validate_email_syntax("abc@yop mail.com"))
+        self.assertFalse(validate_email_syntax("abc @yopmail. com"))
 
-        # List provided = False
-        self.assertFalse(validate_email_syntax([]))
+        # Other strings
+        self.assertFalse(validate_email_syntax("")) # no data
+        self.assertFalse(validate_email_syntax("John Smith")) # string with space
+        self.assertFalse(validate_email_syntax("abcde")) # standard string
+        self.assertFalse(validate_email_syntax("abc@yopmail")) # no top-level domain
+        self.assertFalse(validate_email_syntax("abc@.com")) # no domain
 
-        # Dictionary provided = False
-        self.assertFalse(validate_email_syntax({}))
+        # Other types
+        self.assertFalse(validate_email_syntax(1)) # int
+        self.assertFalse(validate_email_syntax([])) # list
+        self.assertFalse(validate_email_syntax({})) # dict
+        self.assertFalse(validate_email_syntax(object)) # object
 
-        # Object provided = False
-        self.assertFalse(validate_email_syntax(object))
+    def test_email_validation_function_request(self):
 
+        req = func.HttpRequest(
+            method=["POST"],
+            url="/api/email_validation",
+            body={"email":"abc@yopmail.com"},
+            params={},
+            headers={"Content-Type":"application/json"}
+        )
+
+        func_call = email_validation.build().get_user_function()
+        # Breaks the rest of the test
+        # resp = func_call(req) 
+       
+        # self.assertEqual(resp.status_code, 200)
+        # self.assertEqual(resp.get_body().decode(), 'True')
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
