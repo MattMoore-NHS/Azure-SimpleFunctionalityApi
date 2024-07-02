@@ -32,9 +32,21 @@ def email_validation(req: func.HttpRequest) -> func.HttpResponse:
 
 def validate_email_syntax(email: str) -> bool:
 
+    # make sure email is a string
     if type(email) != str:
         return False
+    
+    # disallow double '.' - couldn't figure out how to do it in regex
+    if '..' in email:
+        return False
         
-    # regular expression syntax for email address validation
-    email_regex = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
-    return re.match(email_regex, email) is not None
+    # regular expression syntax for further string validation
+    # if re.match(re.compile(r"^(?!\.)[a-zA-Z0-9_.+-]+(?<!\.)@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]*[a-zA-Z0-9]$"), email) is None:
+    #     return False
+    
+    # Modified RFC 5322 Standard. Removes special characters from local and domain (!#$%&\*+/=?^_`{|}~), stopping strings from starting and finishing with special characters, and stopping double special characters
+    # Original: r"^(?=.{1,256})(?=.{1,64}@.{1,255})((?=[a-zA-Z0-9!#$%&\'*+/=?^_`{|}~.-]{1,64}@)(?!.*[.]{2})[^.@][a-zA-Z0-9!#$%&\'*+/=?^_`{|}~.-]{0,63}(?<![.])@((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.){1,8}[a-zA-Z]{2,63})$"
+    if re.match(re.compile(r"^(?=.{1,256})(?=.{1,64}@.{1,255})((?=[a-zA-Z0-9'.-]{1,64}@)(?!.*[.]{2})(?!.*[']{2})(?!.*[-]{2})(?!.*[@]{2})[^.@'-][a-zA-Z0-9'.-]{0,62}(?<![.'-])@((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.){1,8}[a-zA-Z]{2,63})$"), email) is None:
+        return False
+
+    return True
