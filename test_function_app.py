@@ -47,6 +47,17 @@ class TestEmailValidation(unittest.TestCase):
         self.assertFalse(validate_email_syntax("abc @yopmail.com"))
         self.assertFalse(validate_email_syntax("abc@yop mail.com"))
         self.assertFalse(validate_email_syntax("abc @yopmail. com"))
+               
+        # apostrophes
+        self.assertTrue(validate_email_syntax("ab'c@yopmail.com")) # returns false
+        self.assertFalse(validate_email_syntax("'abc@yopmail.com")) # returns true
+        self.assertFalse(validate_email_syntax("abc'@yopmail.com")) # returns false
+        self.assertFalse(validate_email_syntax("abc@yop'mail.com"))
+        self.assertFalse(validate_email_syntax("abc@yopmail.c'om"))
+        self.assertFalse(validate_email_syntax("abc'@yopmail.com'"))
+        self.assertFalse(validate_email_syntax("abc@'yopmail.com"))
+        self.assertFalse(validate_email_syntax("abc@yopmail'.com"))
+        self.assertFalse(validate_email_syntax("abc@yopmail.'com"))
 
         # Other strings
         self.assertFalse(validate_email_syntax("")) # no data
